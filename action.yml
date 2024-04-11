@@ -1,0 +1,34 @@
+name: 'Allure Single File Report'
+description: 'Generate Allure Single File Report'
+author: 'jcleigh'
+branding:
+  icon: 'layout'
+  color: 'green'
+inputs:
+  allure_results:
+    description: 'Allure test result data dir'
+    required: true
+    default: 'allure-results'
+  allure_report:
+    description: 'Allure report target dir'
+    required: true
+    default: 'allure-report'
+  github_run_num:
+    description: 'GitHub Actions build number'
+    required: true
+    default: ${{ github.run_number }}
+  github_run_id:
+    description: 'GitHub Actions run id'
+    required: true
+    default: ${{ github.run_id }}
+  github_repo:
+    description: 'GitHub repository'
+    required: true
+    default: ${{ github.repository }}
+  github_server_url:
+    description: 'GitHub server URL'
+    required: true
+    default: ${{ github.server_url }}
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
