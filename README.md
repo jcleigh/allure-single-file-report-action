@@ -41,6 +41,10 @@ This action is implemented as a composite action that:
 
 The action runs on Ubuntu runners and does not depend on Docker images.
 
+### Migration from v1.0.0
+
+**Breaking Change:** This version migrates from a Docker-based action to a composite action. The `Dockerfile` and `entrypoint.sh` files are no longer used. If you were using this action, no changes are required to your workflow - the action interface remains the same, but it now runs directly on the Ubuntu runner instead of in a Docker container.
+
 ## References
 - [Add single file mode feature request](https://github.com/allure-framework/allure2/issues/755)
 - [Single file mode does not support history yet](https://github.com/orgs/allure-framework/discussions/2127)
