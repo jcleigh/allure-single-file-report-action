@@ -53,6 +53,8 @@ runs:
     - name: Generate Allure report
       shell: bash
       run: |
+        # Unset JAVA_HOME to let Allure use the Java installation from PATH
+        # This ensures compatibility with the setup-java action
         unset JAVA_HOME
         
         # Create executor.json
