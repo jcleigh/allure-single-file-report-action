@@ -30,5 +30,39 @@ inputs:
     required: true
     default: ${{ github.server_url }}
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  using: 'composite'
+  steps:
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '8'
+    
+    - name: Download and install Allure CLI
+      shell: bash
+      run: |
+        ALLURE_VERSION=2.27.0
+        ALLURE_REPO=https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline
+        wget --no-verbose -O /tmp/allure-${ALLURE_VERSION}.tgz ${ALLURE_REPO}/${ALLURE_VERSION}/allure-commandline-${ALLURE_VERSION}.tgz
+        tar -xzf /tmp/allure-${ALLURE_VERSION}.tgz -C /tmp
+        rm /tmp/allure-${ALLURE_VERSION}.tgz
+        chmod -R +x /tmp/allure-${ALLURE_VERSION}/bin
+        echo "ALLURE_BIN=/tmp/allure-${ALLURE_VERSION}/bin/allure" >> $GITHUB_ENV
+        echo "/tmp/allure-${ALLURE_VERSION}/bin" >> $GITHUB_PATH
+    
+    - name: Generate Allure report
+      shell: bash
+      run: |
+        # Unset JAVA_HOME to let Allure use the Java installation from PATH
+        # This ensures compatibility with the setup-java action
+        unset JAVA_HOME
+        
+        # Create executor.json
+        echo '{"name":"GitHub Actions","type":"github","reportName":"Allure Single File Report",' > executor.json
+        echo "\"buildUrl\":\"${{ inputs.github_server_url }}/${{ inputs.github_repo }}/actions/runs/${{ inputs.github_run_id }}\"," >> executor.json
+        echo "\"buildName\":\"GitHub Actions Run #${{ inputs.github_run_id }}\",\"buildOrder\":\"${{ inputs.github_run_num }}\"}" >> executor.json
+        mv ./executor.json ./${{ inputs.allure_results }}
+        
+        # Generate report
+        echo "generating report from ${{ inputs.allure_results }} to ${{ inputs.allure_report }} ..."
+        allure generate --clean --single-file ${{ inputs.allure_results }} -o ${{ inputs.allure_report }}

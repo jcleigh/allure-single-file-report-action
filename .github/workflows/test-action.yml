@@ -1,0 +1,81 @@
+name: Test Allure Action
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Create sample Allure results
+        run: |
+          mkdir -p allure-results
+          # Create a minimal test result file
+          cat > allure-results/test-result.json << 'EOF'
+          {
+            "uuid": "test-uuid-123",
+            "historyId": "test-history",
+            "fullName": "SampleTest.testMethod",
+            "labels": [
+              {"name": "suite", "value": "SampleSuite"},
+              {"name": "package", "value": "com.example"}
+            ],
+            "links": [],
+            "name": "Sample Test",
+            "status": "passed",
+            "stage": "finished",
+            "start": 1234567890000,
+            "stop": 1234567891000
+          }
+          EOF
+          # Create environment properties file
+          cat > allure-results/environment.properties << 'EOF'
+          Browser=Chrome
+          Version=1.0.0
+          EOF
+      
+      - name: Generate Allure report
+        uses: ./
+        with:
+          allure_results: allure-results
+          allure_report: allure-report
+      
+      - name: Verify report was generated
+        run: |
+          if [ ! -f allure-report/index.html ]; then
+            echo "ERROR: Report index.html not found!"
+            exit 1
+          fi
+          echo "SUCCESS: Report generated successfully"
+          ls -la allure-report/
+      
+      - name: Verify ALLURE_BIN is set
+        run: |
+          if [ -z "$ALLURE_BIN" ]; then
+            echo "WARNING: ALLURE_BIN environment variable not set"
+          else
+            echo "ALLURE_BIN is set to: $ALLURE_BIN"
+            if [ -x "$ALLURE_BIN" ]; then
+              echo "SUCCESS: Allure binary is executable"
+            else
+              echo "ERROR: Allure binary not found or not executable at $ALLURE_BIN"
+              exit 1
+            fi
+          fi
+      
+      - name: Upload Allure report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-report
+          path: allure-report/
