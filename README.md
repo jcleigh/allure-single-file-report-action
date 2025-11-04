@@ -3,6 +3,7 @@ Single file reporting fork of https://github.com/simple-elf/allure-report-action
 
 Since Allure `--single-file` reporting does not yet support history, this is a much simpler version of the original action that only generates a single report file. All history-related functionality has been removed.
 
+This action uses Ubuntu runners with Java 8 (Temurin distribution) and automatically downloads and installs the Allure CLI. The Allure binary path is exposed as `$ALLURE_BIN` for use in subsequent workflow steps.
 
 ## Usage
 
@@ -29,6 +30,16 @@ Default: `allure-results`
 
 Default: `allure-report`
 
+
+## Implementation
+
+This action is implemented as a composite action that:
+1. Sets up Java 8 using the official `actions/setup-java` action with Temurin distribution
+2. Downloads and installs Allure CLI version 2.27.0 via wget/tar
+3. Exposes the Allure binary path as `$ALLURE_BIN` environment variable for subsequent workflow steps
+4. Generates a single-file Allure report from the test results
+
+The action runs on Ubuntu runners and does not depend on Docker images.
 
 ## References
 - [Add single file mode feature request](https://github.com/allure-framework/allure2/issues/755)
